@@ -33,8 +33,8 @@ public class Test extends LinearOpMode {
         arm=hardwareMap.dcMotor.get("grabber180");
         slideM1.setDirection(DcMotorSimple.Direction.REVERSE);
         rotServo = hardwareMap.servo.get("rotServo");
-        grabServo = hardwareMap.servo.get(" ");
-        boolean grabOpen = false;
+        grabServo = hardwareMap.servo.get("grabServo");
+        boolean grabOpen = true;
         // Wait for the start button to be pressed
         waitForStart();
 
@@ -83,21 +83,30 @@ public class Test extends LinearOpMode {
 
 
             if(gamepad1.x){grabOpen=!grabOpen;}//toggle for the grabber
-            grabServo.setPosition(grabOpen ? .5 : 0);//sets the grabber to the right position
+            grabServo.setPosition(grabOpen ? .2 : 0);//sets the grabber to the right position
            telemetry.addData("grabber open? = ",grabOpen);
            telemetry.addData("grabber position",grabServo.getPosition());
             if(gamepad1.y){slidesUp();}
             if(gamepad1.a){slidesDown();}
             if(gamepad1.dpad_left){servoRotate(1);}
             if(gamepad1.dpad_right)servoRotate(0);
-            if(gamepad1.right_bumper) runMotorToPosition(arm,-320);
-            if(gamepad1.left_bumper) runMotorToPosition(arm, -1210);
-          //  if(gamepad1.b) runMotorToPosition(slideM1,);
+            if(gamepad1.right_bumper) runMotorToPosition(arm,0);
+            if(gamepad1.left_bumper) runMotorToPosition(arm, -814);
+            if(gamepad1.b){
+                slideM1.setDirection(DcMotorSimple.Direction.FORWARD);
+                slideM2.setDirection(DcMotorSimple.Direction.FORWARD);
+                runMotorToPosition(slideM1,-245);
+                runMotorToPosition(slideM2, -610);
+                slideM1.setDirection(DcMotorSimple.Direction.REVERSE);
+                slideM2.setDirection(DcMotorSimple.Direction.REVERSE);
+            }
+           // if()
 
 //            telemetry.addData("target",verticalSlide.getTargetPosition());
 //            telemetry.addData("current",verticalSlide.getCurrentPosition());
 //            telemetry.addData("power",verticalSlide.getPower());
             telemetry.addData("vertPos", slideM1.getCurrentPosition());
+            telemetry.addData("vertPos2",slideM2.getCurrentPosition());
             telemetry.addData("armPos", arm.getCurrentPosition());
             telemetry.addData("servoPos",rotServo.getPosition());
             telemetry.update();
@@ -107,10 +116,11 @@ public class Test extends LinearOpMode {
     private void slidesUp() {
         slideM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         telemetry.addData("vertPos", slideM1.getCurrentPosition());
-        slideM1.setTargetPosition(-268);
+        slideM1.setTargetPosition(-260);
         while(slideM1.getCurrentPosition() > slideM1.getTargetPosition()){
-            slideM1.setPower(.85);
-            slideM2.setPower(.85);
+            slideM1.setPower(.75);
+            slideM2.setPower(.75);
+            telemetry.update();
         }
         slideM1.setPower(0);
         slideM2.setPower(0);
@@ -120,8 +130,9 @@ public class Test extends LinearOpMode {
         telemetry.addData("vertPos", slideM1.getCurrentPosition());
         slideM1.setTargetPosition(0);
         while(slideM1.getCurrentPosition() < slideM1.getTargetPosition()){
-            slideM1.setPower(-1);
-            slideM2.setPower(-1);
+            slideM1.setPower(-.5);
+            slideM2.setPower(-.5);
+            telemetry.update();
         }
         slideM1.setPower(0);
         slideM2.setPower(0);
@@ -133,8 +144,8 @@ public class Test extends LinearOpMode {
     public void runMotorToPosition(DcMotor motor, double targetPosition) {
         // PID constants
         final double kp = 0.01; // Proportional gain
-        final double ki = 0.03; // Integral gain
-        final double kd = 0.01; // Derivative gain
+        final double ki = 0.00; // Integral gain
+        final double kd = 0.00; // Derivative gain
 
         final double dt = 0.01; // Update interval (seconds)
 
@@ -161,7 +172,7 @@ public class Test extends LinearOpMode {
             motor.setPower(output);
 
             // Check if the motor has reached the target position
-            if (Math.abs(error) < 1.0) {
+            if (Math.abs(error) < 5.0) {
                 break; // Exit the loop if close enough to the target position
             }
 
