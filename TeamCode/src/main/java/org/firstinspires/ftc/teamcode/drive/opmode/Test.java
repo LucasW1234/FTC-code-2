@@ -102,9 +102,7 @@ public class Test extends LinearOpMode {
             }
            // if()
 
-//            telemetry.addData("target",verticalSlide.getTargetPosition());
-//            telemetry.addData("current",verticalSlide.getCurrentPosition());
-//            telemetry.addData("power",verticalSlide.getPower());
+
             telemetry.addData("vertPos", slideM1.getCurrentPosition());
             telemetry.addData("vertPos2",slideM2.getCurrentPosition());
             telemetry.addData("armPos", arm.getCurrentPosition());
@@ -172,7 +170,7 @@ public class Test extends LinearOpMode {
             motor.setPower(output);
 
             // Check if the motor has reached the target position
-            if (Math.abs(error) < 5.0) {
+            if (Math.abs(error) < 10.0) {
                 break; // Exit the loop if close enough to the target position
             }
 
