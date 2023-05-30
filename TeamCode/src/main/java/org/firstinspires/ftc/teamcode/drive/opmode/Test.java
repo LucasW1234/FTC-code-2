@@ -25,7 +25,6 @@ public class Test extends LinearOpMode {
     // Override the runOpMode method
     @Override
     public void runOpMode() {
-
         // Initialize the MecanumDrive object with hardware map
         drive = new SampleMecanumDrive(hardwareMap);
         slideM2 = hardwareMap.dcMotor.get("slideM2");
@@ -35,6 +34,8 @@ public class Test extends LinearOpMode {
         rotServo = hardwareMap.servo.get("rotServo");
         grabServo = hardwareMap.servo.get("grabServo");
         boolean grabOpen = true;
+        rotServo.setPosition(.679);
+        double rotPos = 0;
         // Wait for the start button to be pressed
         waitForStart();
 
@@ -70,7 +71,7 @@ public class Test extends LinearOpMode {
             telemetry.addData("x", x);
             telemetry.addData("y", y);
             telemetry.addData("turn", turn);
-
+//bals
 
 //            int slideUpPow = slideUp ? 1 : 0;
 //            int slideDownPow = slideDown ? 1 : 0;
@@ -82,33 +83,40 @@ public class Test extends LinearOpMode {
 //            telemetry.addData("Vertical Slide", position);
 
 
-            if(gamepad1.x){grabOpen=!grabOpen;}//toggle for the grabber
-            grabServo.setPosition(grabOpen ? .2 : 0);//sets the grabber to the right position
+            if(gamepad1.x){
+                grabOpen=!grabOpen;
+                grabServo.setPosition(grabOpen ? .2 : 0);
+                sleep(500);}//toggle for the grabber
            telemetry.addData("grabber open? = ",grabOpen);
            telemetry.addData("grabber position",grabServo.getPosition());
-            if(gamepad1.y){slidesUp();}
-            if(gamepad1.a){slidesDown();}
-            if(gamepad1.dpad_left){servoRotate(1);}
-            if(gamepad1.dpad_right)servoRotate(0);
-            if(gamepad1.right_bumper) runMotorToPosition(arm,0);
-            if(gamepad1.left_bumper) runMotorToPosition(arm, -814);
-            if(gamepad1.b){
-                slideM1.setDirection(DcMotorSimple.Direction.FORWARD);
-                slideM2.setDirection(DcMotorSimple.Direction.FORWARD);
-                runMotorToPosition(slideM1,-245);
-                runMotorToPosition(slideM2, -610);
-                slideM1.setDirection(DcMotorSimple.Direction.REVERSE);
-                slideM2.setDirection(DcMotorSimple.Direction.REVERSE);
-            }
-           // if()
+           controller();
 
 
             telemetry.addData("vertPos", slideM1.getCurrentPosition());
             telemetry.addData("vertPos2",slideM2.getCurrentPosition());
             telemetry.addData("armPos", arm.getCurrentPosition());
-            telemetry.addData("servoPos",rotServo.getPosition());
+            telemetry.addData("rotPos",rotServo.getPosition());
+            telemetry.addData("grabPos",grabServo.getPosition());
             telemetry.update();
+
+            //rotServo.setPosition(rotPos);
+            if(gamepad1.back) rotPos +=.001;
+            if(gamepad1.guide) rotPos -= .001;
         }
+    }
+
+    private void controller(){
+        if(gamepad1.y){slidesUp();}
+        if(gamepad1.a){slidesDown();}
+        // if(gamepad1.dpad_left){servoRotate(1);}
+        // if(gamepad1.dpad_right)servoRotate(0);
+        if(gamepad1.right_bumper) runMotorToPosition(arm,0);
+        if(gamepad1.left_bumper) runMotorToPosition(arm, -814);
+        if(gamepad1.right_stick_button) runMotorToPosition(arm, 272);
+        if(gamepad1.dpad_left) rotServo.setPosition(0);
+        if(gamepad1.dpad_right) rotServo.setPosition(.679);
+        if (gamepad1.dpad_down) intakeDown();
+        if (gamepad1.dpad_up) intakeTransfer();
     }
 
     private void slidesUp() {
@@ -141,11 +149,11 @@ public class Test extends LinearOpMode {
 
     public void runMotorToPosition(DcMotor motor, double targetPosition) {
         // PID constants
-        final double kp = 0.01; // Proportional gain
-        final double ki = 0.00; // Integral gain
-        final double kd = 0.00; // Derivative gain
+        final double kp = 11000.8; // Proportional gain
+        final double ki = 1.9; // Integral gain
+        final double kd = 0.000000000001; // Derivative gain
 
-        final double dt = 0.01; // Update interval (seconds)
+        final double dt = 0.000000000000000001; // Update interval (seconds)
 
         double previousError = 0;
         double integral = 0;
@@ -170,7 +178,7 @@ public class Test extends LinearOpMode {
             motor.setPower(output);
 
             // Check if the motor has reached the target position
-            if (Math.abs(error) < 10.0) {
+            if (Math.abs(error) < 5.0) {
                 break; // Exit the loop if close enough to the target position
             }
 
@@ -184,10 +192,26 @@ public class Test extends LinearOpMode {
         // Stop the motor after reaching the target position
         motor.setPower(0);
     }
-    private void slidesOut(){
 
+    private void intakeDown(){
+        runMotorToPosition(arm, 0);
+    rotServo.setPosition(.679);
+    sleep(500);
+        runMotorToPosition(arm, -814);
     }
-    private void slidesIn(){
+    private void intakeTransfer(){
+        grabServo.setPosition(.2);
+        while(grabServo.getPosition()<.2){
+
+        }
+        runMotorToPosition(arm, 0);
+        rotServo.setPosition(0);
+        sleep(800);
+        runMotorToPosition(arm, 272);
+        sleep(200);
+        grabServo.setPosition(.1);
+        sleep(500);
+        runMotorToPosition(arm,0);
 
     }
 
