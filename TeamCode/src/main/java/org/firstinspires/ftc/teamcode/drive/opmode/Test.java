@@ -43,34 +43,7 @@ public class Test extends LinearOpMode {
         while (opModeIsActive()) {
 
             // Read the left stick for translation and right stick for rotation
-            double x = gamepad1.left_stick_y;
-            double y = gamepad1.left_stick_x;
-            double turn = gamepad1.right_stick_x;
 
-            // Convert translation to field-centric if desired
-            if (true) {
-                double heading = drive.getExternalHeading();
-                double temp = y * Math.cos(heading) - x * Math.sin(heading);
-                x = y * Math.sin(heading) + x * Math.cos(heading);
-                y = temp;
-            }
-
-            // Create a vector from the translation components
-            Vector2d input = new Vector2d(x, y);
-
-            // Normalize the input vector if it exceeds magnitude of 1
-            if (input.norm() > 1) {
-          //      input = (1, 1);
-            }
-
-            // Set the drive velocity and angular velocity
-            drive.setDrivePower(new Pose2d(input.getX(), input.getY(), turn));
-
-
-            // Update telemetry data
-            telemetry.addData("x", x);
-            telemetry.addData("y", y);
-            telemetry.addData("turn", turn);
 //bals
 
 //            int slideUpPow = slideUp ? 1 : 0;
@@ -83,7 +56,7 @@ public class Test extends LinearOpMode {
 //            telemetry.addData("Vertical Slide", position);
 
 
-            if(gamepad1.x){
+            if(gamepad1.right_trigger > 0 || gamepad1.left_trigger > 0){
                 grabOpen=!grabOpen;
                 grabServo.setPosition(grabOpen ? .2 : 0);
                 sleep(500);}//toggle for the grabber
@@ -100,23 +73,54 @@ public class Test extends LinearOpMode {
             telemetry.update();
 
             //rotServo.setPosition(rotPos);
-            if(gamepad1.back) rotPos +=.001;
-            if(gamepad1.guide) rotPos -= .001;
+            //if(gamepad1.back) rotPos +=.001;
+            //if(gamepad1.guide) rotPos -= .001;
         }
     }
 
     private void controller(){
-        if(gamepad1.y){slidesUp();}
-        if(gamepad1.a){slidesDown();}
+        if(gamepad1.dpad_up) slidesUp();
+        if(gamepad1.dpad_down) slidesDown();
+        if(gamepad1.dpad_left) slidesMid();
         // if(gamepad1.dpad_left){servoRotate(1);}
         // if(gamepad1.dpad_right)servoRotate(0);
-        if(gamepad1.right_bumper) runMotorToPosition(arm,0);
-        if(gamepad1.left_bumper) runMotorToPosition(arm, -814);
-        if(gamepad1.right_stick_button) runMotorToPosition(arm, 272);
-        if(gamepad1.dpad_left) rotServo.setPosition(0);
-        if(gamepad1.dpad_right) rotServo.setPosition(.679);
-        if (gamepad1.dpad_down) intakeDown();
-        if (gamepad1.dpad_up) intakeTransfer();
+        //if(gamepad1.right_bumper) runMotorToPosition(arm,0);
+        //if(gamepad1.left_bumper) runMotorToPosition(arm, -814);
+        //if(gamepad1.left_bumper) runMotorToPosition(arm,-319);
+        //if(gamepad1.right_stick_button) runMotorToPosition(arm, 272);
+        //if(gamepad1.dpad_left) rotServo.setPosition(0);
+        //if(gamepad1.dpad_right) rotServo.setPosition(.679);
+        if (gamepad1.a) intakeDown();
+        if (gamepad1.y) intakeTransfer();
+        //else{runMotorToPosition(arm,0);};
+        double x = gamepad1.left_stick_y;
+        double y = gamepad1.left_stick_x;
+        double turn = gamepad1.right_stick_x;
+
+        // Convert translation to field-centric if desired
+        if (false) {
+            double heading = drive.getExternalHeading();
+            double temp = y * Math.cos(heading) - x * Math.sin(heading);
+            x = y * Math.sin(heading) + x * Math.cos(heading);
+            y = temp;
+        }
+
+        // Create a vector from the translation components
+        Vector2d input = new Vector2d(x, y);
+
+        // Normalize the input vector if it exceeds magnitude of 1
+        if (input.norm() > 1) {
+            //      input = (1, 1);
+        }
+
+        // Set the drive velocity and angular velocity
+        drive.setDrivePower(new Pose2d(input.getX(), input.getY(), turn));
+
+
+        // Update telemetry data
+        telemetry.addData("x", x);
+        telemetry.addData("y", y);
+        telemetry.addData("turn", turn);
     }
 
     private void slidesUp() {
@@ -131,14 +135,29 @@ public class Test extends LinearOpMode {
         slideM1.setPower(0);
         slideM2.setPower(0);
     }
+
+    private void slidesMid() {
+        slideM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        telemetry.addData("vertPos", slideM1.getCurrentPosition());
+        slideM1.setTargetPosition(-153);
+        while(slideM1.getCurrentPosition() > slideM1.getTargetPosition()){
+            slideM1.setPower(.75);
+            slideM2.setPower(.75);
+            telemetry.update();
+        }
+        slideM1.setPower(0);
+        slideM2.setPower(0);
+    }
+
     private void slidesDown(){
         slideM1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         telemetry.addData("vertPos", slideM1.getCurrentPosition());
         slideM1.setTargetPosition(0);
         while(slideM1.getCurrentPosition() < slideM1.getTargetPosition()){
             slideM1.setPower(-.5);
-            slideM2.setPower(-.5);
+            slideM2.setPower(-.1);
             telemetry.update();
+            gamepad1.rumble(100);
         }
         slideM1.setPower(0);
         slideM2.setPower(0);
@@ -198,11 +217,12 @@ public class Test extends LinearOpMode {
     rotServo.setPosition(.679);
     sleep(500);
         runMotorToPosition(arm, -814);
+        grabServo.setPosition(0);
     }
     private void intakeTransfer(){
         grabServo.setPosition(.2);
         while(grabServo.getPosition()<.2){
-
+        controller();
         }
         runMotorToPosition(arm, 0);
         rotServo.setPosition(0);
@@ -212,7 +232,5 @@ public class Test extends LinearOpMode {
         grabServo.setPosition(.1);
         sleep(500);
         runMotorToPosition(arm,0);
-
     }
-
 }
